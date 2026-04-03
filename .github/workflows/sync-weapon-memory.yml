@@ -1,0 +1,28 @@
+name: Sync WeaponMemory
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # every 6 hours
+  workflow_dispatch:         # manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dist repo
+        uses: actions/checkout@v4
+        with:
+          repository: downtathelast/worldwide-dead-script-dist
+          token: ${{ secrets.DIST_REPO_TOKEN }}
+
+      - name: Fetch latest WeaponMemory from xunoaib
+        run: |
+          curl -L https://raw.githubusercontent.com/xunoaib/wwdead-weapon-memory/main/WeaponMemory.user.js \
+            -o WeaponMemory.user.js
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add WeaponMemory.user.js
+          git diff --staged --quiet || git commit -m "Sync WeaponMemory.user.js from xunoaib"
+          git push
